@@ -122,7 +122,12 @@ if (! empty($entity_oids)) {
             if (is_numeric($entry['entPhySensorPrecision']) && $entry['entPhySensorPrecision'] > '0') {
                 $divisor = $divisor . str_pad('', $entry['entPhySensorPrecision'], '0');
             }
-
+            if ($device['os'] === 'arista_eos' && $entry['entPhySensorPrecision'] == '0') {
+                if ($entry['entPhySensorScale'] == 'milli' && $entry['entPhySensorType'] == 'amperes') {
+                    $divisor = '1';
+                    $multiplier = '1';
+                }
+            }
             $current = ($current * $multiplier / $divisor);
             if ($type == 'temperature') {
                 if ($current > '200') {
