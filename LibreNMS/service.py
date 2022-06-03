@@ -919,9 +919,8 @@ class Service:
             notify("WATCHDOG=1")
 
     def logfile_watchdog(self):
-
         try:
-            # check that lofgile has been written to within last poll period
+            # check that logfile has been written to within 2 polling intervals
             logfile_mdiff = datetime.now().timestamp() - os.path.getmtime(
                 self.config.watchdog_logfile
             )
@@ -929,12 +928,12 @@ class Service:
             logger.error("Log file not found! {}".format(e))
             return
 
-        if logfile_mdiff > self.config.poller.frequency:
+        max_age = 2 * self.config.poller.frequency
+        if logfile_mdiff > max_age:
             logger.critical(
-                "BARK! Log file older than {}s, restarting service!".format(
-                    self.config.poller.frequency
-                ),
-                exc_info=True,
+                "BARK! Log file older than {}s and polling interval is {}, restarting service!".format(
+                    max_age, self.config.poller.frequency
+                )
             )
             self.restart()
         else:
