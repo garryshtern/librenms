@@ -360,16 +360,19 @@ class BillingQueueManager(TimedQueueManager):
         self.post_work("poll", 0)
 
     def do_work(self, run_type, group):
+        args = ()
+        if self.config.debug:
+            args = ("-d",)
         if run_type == "poll":
             logger.info("Polling billing")
-            exit_code, output = LibreNMS.call_script("poll-billing.php")
+            exit_code, output = LibreNMS.call_script("poll-billing.php", args)
             if exit_code != 0:
                 logger.warning(
                     "Error {} in Polling billing:\n{}".format(exit_code, output)
                 )
         else:  # run_type == 'calculate'
             logger.info("Calculating billing")
-            exit_code, output = LibreNMS.call_script("billing-calculate.php")
+            exit_code, output = LibreNMS.call_script("billing-calculate.php", args)
             if exit_code != 0:
                 logger.warning(
                     "Error {} in Calculating billing:\n{}".format(exit_code, output)
@@ -398,10 +401,13 @@ class PingQueueManager(TimedQueueManager):
             logger.critical("DB Exception ({})".format(e))
 
     def do_work(self, context, group):
+        args = ("-g", group)
+        if self.config.debug:
+            args = ("-d",) + args
         if self.lock(group, "group", timeout=self.config.ping.frequency):
             try:
                 logger.info("Running fast ping")
-                exit_code, output = LibreNMS.call_script("ping.php", ("-g", group))
+                exit_code, output = LibreNMS.call_script("ping.php", args)
                 if exit_code != 0:
                     logger.warning(
                         "Running fast ping for {} failed with error code {}: {}".format(
@@ -437,10 +443,13 @@ class ServicesQueueManager(TimedQueueManager):
             logger.critical("DB Exception ({})".format(e))
 
     def do_work(self, device_id, group):
+        args = ("-h", device_id)
+        if self.config.debug:
+            args = ("-d",) + args
         if self.lock(device_id, timeout=self.config.services.frequency):
             logger.info("Checking services on device {}".format(device_id))
             exit_code, output = LibreNMS.call_script(
-                "check-services.php", ("-h", device_id)
+                "check-services.php", args
             )
             if exit_code == 0:
                 self.unlock(device_id)
@@ -480,7 +489,10 @@ class AlertQueueManager(TimedQueueManager):
 
     def do_work(self, device_id, group):
         logger.info("Checking alerts")
-        exit_code, output = LibreNMS.call_script("alerts.php")
+        args = ()
+        if self.config.debug:
+            args = ("-d",)
+        exit_code, output = LibreNMS.call_script("alerts.php", args)
         if exit_code != 0:
             if exit_code == 1:
                 logger.warning("There was an error issuing alerts: {}".format(output))
@@ -503,8 +515,10 @@ class PollerQueueManager(QueueManager):
     def do_work(self, device_id, group):
         if self.lock(device_id, timeout=self.config.poller.frequency):
             logger.info("Polling device {}".format(device_id))
-
-            exit_code, output = LibreNMS.call_script("poller.php", ("-h", device_id))
+            args = ("-h", device_id)
+            if self.config.debug:
+                args = ("-d",) + args
+            exit_code, output = LibreNMS.call_script("poller.php", args)
             if exit_code == 0:
                 self.unlock(device_id)
             else:
@@ -514,6 +528,7 @@ class PollerQueueManager(QueueManager):
                             device_id, self.config.down_retry
                         )
                     )
+                    logger.debug("Poller output for unreachable device: {}".format(output))
                     # re-lock to set retry timer
                     self.lock(
                         device_id, allow_relock=True, timeout=self.config.down_retry
@@ -553,6 +568,9 @@ class DiscoveryQueueManager(TimedQueueManager):
             logger.critical("DB Exception ({})".format(e))
 
     def do_work(self, device_id, group):
+        args = ("-h", device_id)
+        if self.config.debug:
+            args = ("-d",) + args
         if self.lock(
             device_id, timeout=LibreNMS.normalize_wait(self.config.discovery.frequency)
         ):

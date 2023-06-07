@@ -247,9 +247,6 @@ class ServiceConfig(DBConfig):
         )
         self.watchdog_logfile = config.get("log_file", ServiceConfig.watchdog_logfile)
 
-        # set convenient debug variable
-        self.debug = logging.getLogger().isEnabledFor(logging.DEBUG)
-
         if not self.debug and self.log_level:
             try:
                 logging.getLogger().setLevel(self.log_level)
@@ -260,6 +257,9 @@ class ServiceConfig(DBConfig):
                     )
                 )
                 logging.getLogger().setLevel(logging.INFO)
+
+        # set convenient debug variable after resolving the proper loglevel from the configuration
+        self.debug = logging.getLogger().isEnabledFor(logging.DEBUG)
 
     def load_poller_config(self, db):
         try:
