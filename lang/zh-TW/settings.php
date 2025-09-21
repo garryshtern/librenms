@@ -52,6 +52,7 @@ return [
             'distributed' => ['name' => '分散式輪詢器'],
             'graphite' => ['name' => '資料存放區: Graphite'],
             'influxdb' => ['name' => '資料存放區: InfluxDB'],
+            'kafka' => ['name' => '資料存放區: Kafka'],
             'opentsdb' => ['name' => '資料存放區: OpenTSDB'],
             'ping' => ['name' => 'Ping'],
             'prometheus' => ['name' => '資料存放區: Prometheus'],
@@ -375,10 +376,6 @@ return [
             'description' => '指定 URL',
             'help' => 'This should *only* be set if you want to *force* a particular hostname/port. It will prevent the web interface being usable form any other hostname',
         ],
-        'device_perf_purge' => [
-            'description' => '裝置效能項目大於',
-            'help' => 'Cleanup done by daily.sh',
-        ],
         'distributed_poller' => [
             'description' => '啟用分散式輪詢 (需要額外設定)',
             'help' => 'Enable distributed polling system wide. This is intended for load sharing, not remote polling. You must read the documentation for steps to enable: https://docs.librenms.org/Extensions/Distributed-Poller/',
@@ -643,7 +640,7 @@ return [
         'nfsen_top_default' => [
             'description' => 'Default Top N',
         ],
-        'nfsen_stat_default' => [
+        'nfsen_stats_default' => [
             'description' => 'Default Stat',
         ],
         'nfsen_order_default' => [
@@ -725,7 +722,7 @@ return [
             'help' => 'Cleanup done by daily.sh',
         ],
         'ports_purge' => [
-            'description' => '清除端口已刪除',
+            'description' => '清除已刪除的連接埠',
             'help' => 'Cleanup done by daily.sh',
         ],
         'prometheus' => [

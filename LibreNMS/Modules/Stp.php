@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Stp.php
  *
@@ -56,16 +57,14 @@ class Stp implements Module
         $device = $os->getDevice();
 
         $instances = $os->discoverStpInstances();
-        echo 'Instances: ';
-        ModuleModelObserver::observe(\App\Models\Stp::class);
+        ModuleModelObserver::observe(\App\Models\Stp::class, 'Instances');
         $this->syncModels($device, 'stpInstances', $instances);
+        ModuleModelObserver::done();
 
         $ports = $os->discoverStpPorts($instances);
-        echo "\nPorts: ";
-        ModuleModelObserver::observe(PortStp::class);
+        ModuleModelObserver::observe(PortStp::class, 'Ports');
         $this->syncModels($device, 'stpPorts', $ports);
-
-        echo PHP_EOL;
+        ModuleModelObserver::done();
     }
 
     public function shouldPoll(OS $os, ModuleStatus $status): bool
@@ -77,28 +76,35 @@ class Stp implements Module
     {
         $device = $os->getDevice();
 
-        echo 'Instances: ';
         $instances = $device->stpInstances;
         $instances = $os->pollStpInstances($instances);
-        ModuleModelObserver::observe(\App\Models\Stp::class);
+        ModuleModelObserver::observe(\App\Models\Stp::class, 'Instances');
         $this->syncModels($device, 'stpInstances', $instances);
+        ModuleModelObserver::done();
 
-        echo "\nPorts: ";
         $ports = $device->stpPorts;
-        ModuleModelObserver::observe(PortStp::class);
+        ModuleModelObserver::observe(PortStp::class, 'Ports');
         $this->syncModels($device, 'stpPorts', $ports);
+        ModuleModelObserver::done();
     }
 
-    public function cleanup(Device $device): void
+    public function dataExists(Device $device): bool
     {
-        $device->stpInstances()->delete();
-        $device->stpPorts()->delete();
+        return $device->stpInstances()->exists() || $device->stpPorts()->exists();
+    }
+
+    public function cleanup(Device $device): int
+    {
+        $deleted = $device->stpInstances()->delete();
+        $deleted += $device->stpPorts()->delete();
+
+        return $deleted;
     }
 
     /**
      * @inheritDoc
      */
-    public function dump(Device $device)
+    public function dump(Device $device, string $type): ?array
     {
         return [
             'stp' => $device->stpInstances()->orderBy('bridgeAddress')

@@ -1,8 +1,8 @@
 <?php
 
-use LibreNMS\Config;
+use App\Facades\LibrenmsConfig;
 
-if (Config::get('enable_pseudowires') && $device['os_group'] == 'cisco') {
+if (LibrenmsConfig::get('enable_pseudowires') && $device['os_group'] == 'cisco') {
     $pws_db = [];
     // Pre-cache the existing state of pseudowires for this device from the database
     $pws_db_raw = dbFetchRows('SELECT * FROM `pseudowires` WHERE `device_id` = ?', [$device['device_id']]);
@@ -28,6 +28,12 @@ if (Config::get('enable_pseudowires') && $device['os_group'] == 'cisco') {
         // END
 
         [$cpw_remote_id] = explode(':', $pw['cpwVcMplsPeerLdpID']);
+
+        if (\LibreNMS\Util\IPv4::isValid($cpw_remote_id)) {
+            //If cpwVcMplsPeerLdpID is in the IP form, then convert it to number to store it in DB to avoid failing
+            $cpw_remote_id = ip2long($cpw_remote_id);
+        }
+
         $cpw_remote_device = dbFetchCell('SELECT device_id from ipv4_addresses AS A, ports AS I WHERE A.ipv4_address=? AND A.port_id=I.port_id', [$cpw_remote_id]);
         $if_id = dbFetchCell('SELECT port_id from ports WHERE `ifDescr`=? AND `device_id`=?', [$pw['cpwVcName'], $device['device_id']]);
         if (! empty($pws_db[$pw['cpwVcID']])) {

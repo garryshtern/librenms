@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -61,7 +62,7 @@ foreach ($menu_options as $option => $text) {
 }
 
 $displayLists .= '<div style="float: right;">';
-$displayLists .= '<a href="' . \LibreNMS\Util\Url::generate($vars, ['format' => '', 'page' => 'csv.php', 'report' => 'ports']) . '" title="Export as CSV" target="_blank" rel="noopener">Export CSV</a> | <a href="' . \LibreNMS\Util\Url::generate($vars) . '" title="Update the browser URL to reflect the search criteria.">Update URL</a> | ';
+$displayLists .= '<a href="' . \LibreNMS\Util\Url::generate($vars) . '" title="Update the browser URL to reflect the search criteria.">Update URL</a> | ';
 
 if (isset($vars['searchbar']) && $vars['searchbar'] == 'hide') {
     $displayLists .= '<a href="' . \LibreNMS\Util\Url::generate($vars, ['searchbar' => '']) . '">Search</a>';
@@ -139,7 +140,7 @@ if ((isset($vars['searchbar']) && $vars['searchbar'] != 'hide') || ! isset($vars
     foreach ($ifSpeed as $data) {
         if ($data['ifSpeed']) {
             $speedselected = isset($vars['ifSpeed']) && $data['ifSpeed'] == $vars['ifSpeed'] ? 'selected' : '';
-            $output .= "<option value='" . $data['ifSpeed'] . "'" . $speedselected . '>' . \LibreNMS\Util\Number::formatSi($data['ifSpeed'], 2, 3, 'bps') . '</option>';
+            $output .= "<option value='" . $data['ifSpeed'] . "'" . $speedselected . '>' . \LibreNMS\Util\Number::formatSi($data['ifSpeed'], 2, 0, 'bps') . '</option>';
         }
     }
 

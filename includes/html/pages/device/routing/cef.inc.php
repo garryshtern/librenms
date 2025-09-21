@@ -55,9 +55,9 @@ foreach (dbFetchRows('SELECT * FROM `cef_switching` WHERE `device_id` = ?  ORDER
     $entity = dbFetchRow('SELECT * FROM `entPhysical` WHERE device_id = ? AND `entPhysicalIndex` = ?', [$device['device_id'], $cef['entPhysicalIndex']]);
 
     if (! is_integer($i / 2)) {
-        $bg_colour = \LibreNMS\Config::get('list_colour.even');
+        $bg_colour = \App\Facades\LibrenmsConfig::get('list_colour.even');
     } else {
-        $bg_colour = \LibreNMS\Config::get('list_colour.odd');
+        $bg_colour = \App\Facades\LibrenmsConfig::get('list_colour.odd');
     }
 
     $interval = ($cef['updated'] - $cef['updated_prev']);
@@ -91,19 +91,19 @@ foreach (dbFetchRows('SELECT * FROM `cef_switching` WHERE `device_id` = ?  ORDER
     }
 
     echo '</td>';
-    echo '<td>' . \LibreNMS\Util\Number::formatSi($cef['drop'], 2, 3, '');
+    echo '<td>' . \LibreNMS\Util\Number::formatSi($cef['drop'], 2, 0, '');
     if ($cef['drop'] > $cef['drop_prev']) {
         echo " <span style='color:red;'>(" . round(($cef['drop'] - $cef['drop_prev']) / $interval, 2) . '/sec)</span>';
     }
 
     echo '</td>';
-    echo '<td>' . \LibreNMS\Util\Number::formatSi($cef['punt'], 2, 3, '');
+    echo '<td>' . \LibreNMS\Util\Number::formatSi($cef['punt'], 2, 0, '');
     if ($cef['punt'] > $cef['punt_prev']) {
         echo " <span style='color:red;'>(" . round(($cef['punt'] - $cef['punt_prev']) / $interval, 2) . '/sec)</span>';
     }
 
     echo '</td>';
-    echo '<td>' . \LibreNMS\Util\Number::formatSi($cef['punt2host'], 2, 3, '');
+    echo '<td>' . \LibreNMS\Util\Number::formatSi($cef['punt2host'], 2, 0, '');
     if ($cef['punt2host'] > $cef['punt2host_prev']) {
         echo " <span style='color:red;'>(" . round(($cef['punt2host'] - $cef['punt2host_prev']) / $interval, 2) . '/sec)</span>';
     }
@@ -116,7 +116,7 @@ foreach (dbFetchRows('SELECT * FROM `cef_switching` WHERE `device_id` = ?  ORDER
     if ($vars['view'] == 'graphs') {
         $graph_array['height'] = '100';
         $graph_array['width'] = '215';
-        $graph_array['to'] = \LibreNMS\Config::get('time.now');
+        $graph_array['to'] = \App\Facades\LibrenmsConfig::get('time.now');
         $graph_array['id'] = $cef['cef_switching_id'];
         $graph_array['type'] = 'cefswitching_graph';
 

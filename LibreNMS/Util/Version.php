@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Version.php
  *
@@ -25,33 +26,36 @@
 
 namespace LibreNMS\Util;
 
+use App\ConfigRepository;
+use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-use LibreNMS\Config;
 use LibreNMS\DB\Eloquent;
 use Symfony\Component\Process\Process;
 
 class Version
 {
     /** @var string Update this on release */
-    public const VERSION = '24.2.0';
+    public const VERSION = '25.8.0';
 
     /** @var Git convenience instance */
     public $git;
+    private ConfigRepository $config;
 
-    public function __construct()
+    public function __construct(ConfigRepository $config)
     {
+        $this->config = $config;
         $this->git = Git::make();
     }
 
     public static function get(): Version
     {
-        return new static;
+        return new static(app('librenms-config'));
     }
 
     public function release(): string
     {
-        return Config::get('update_channel') == 'master' ? 'master' : self::VERSION;
+        return $this->config->get('update_channel') == 'master' ? 'master' : self::VERSION;
     }
 
     public function date(string $format = 'c'): string
@@ -61,7 +65,20 @@ class Version
 
     public function name(): string
     {
-        return $this->git->tag() ?: self::VERSION;
+        $regex = '/^(?<year>\d+)\.(?<month>\d+)\.(?<minor>\d+)-(?<commits>\d+)-g(?<sha>[0-9a-f]{7,})$/';
+        if (preg_match($regex, $this->git->tag(), $matches)) {
+            // guess the next version
+            $year = (int) $matches['year'];
+            $month = (int) $matches['month'] + 1;
+            if ($month > 12) {
+                $year++;
+                $month = 1;
+            }
+
+            return sprintf('%d.%d.%d-dev.%s+%s', $year, $month, $matches['minor'], $matches['commits'], $matches['sha']);
+        }
+
+        return self::VERSION;
     }
 
     public function databaseServer(): string
@@ -135,7 +152,7 @@ class Version
 
     public function rrdtool(): string
     {
-        $process = new Process([Config::get('rrdtool', 'rrdtool'), '--version']);
+        $process = new Process([$this->config->get('rrdtool', 'rrdtool'), '--version']);
         $process->run();
         preg_match('/^RRDtool ([\w.]+) /', $process->getOutput(), $matches);
 
@@ -144,7 +161,7 @@ class Version
 
     public function netSnmp(): string
     {
-        $process = new Process([Config::get('snmpget', 'snmpget'), '-V']);
+        $process = new Process([$this->config->get('snmpget', 'snmpget'), '-V']);
 
         $process->run();
         preg_match('/[\w.]+$/', $process->getErrorOutput(), $matches);
@@ -182,6 +199,27 @@ class Version
         $only = array_intersect_key($info, ['NAME' => true, 'VERSION_ID' => true]);
 
         return implode(' ', $only);
+    }
+
+    public static function registerAboutCommand(): void
+    {
+        // spaces affect sorting, but not output
+        AboutCommand::add('LibreNMS', fn () => [
+            '  Version' => Version::get()->name(),
+            ' Last Update' => Version::get()->date(),
+            ' Update Channel' => Version::get()->release(),
+
+        ]);
+        AboutCommand::add('Environment', fn () => ['OS' => Version::get()->os()]);
+        AboutCommand::add('Drivers', fn () => [
+            'Database  Server' => Version::get()->databaseServer(),
+            'Database Migrations' => Version::get()->database(),
+        ]);
+        AboutCommand::add('External Tools', fn () => [
+            'Python' => Version::get()->python(),
+            'RRDTool' => Version::get()->rrdtool(),
+            'SNMP' => Version::get()->netSnmp(),
+        ]);
     }
 
     /**

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * CheckSchemaStructure.php
  *
@@ -27,7 +28,6 @@ namespace LibreNMS\Validations\Database;
 
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
-use LibreNMS\Config;
 use LibreNMS\DB\Eloquent;
 use LibreNMS\DB\Schema;
 use LibreNMS\Interfaces\Validation;
@@ -46,7 +46,7 @@ class CheckSchemaStructure implements Validation, ValidationFixer
 
     public function __construct()
     {
-        $this->schema_file = Config::get('install_dir') . '/misc/db_schema.yaml';
+        $this->schema_file = resource_path('definitions/schema/db_schema.yaml');
     }
 
     /**
@@ -264,7 +264,7 @@ class CheckSchemaStructure implements Validation, ValidationFixer
      */
     private function columnToSql(array $column_data): string
     {
-        $segments = ["`${column_data['Field']}`", $column_data['Type']];
+        $segments = ["`{$column_data['Field']}`", $column_data['Type']];
 
         $segments[] = $column_data['Null'] ? 'NULL' : 'NOT NULL';
 
@@ -274,7 +274,7 @@ class CheckSchemaStructure implements Validation, ValidationFixer
             } elseif ($column_data['Default'] == 'NULL') {
                 $segments[] = 'DEFAULT NULL';
             } else {
-                $segments[] = "DEFAULT '${column_data['Default']}'";
+                $segments[] = "DEFAULT '{$column_data['Default']}'";
             }
         }
 

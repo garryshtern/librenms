@@ -9,7 +9,7 @@ $link_array = [
 
 print_optionbar_start();
 
-echo generate_link('Totals', $link_array);
+echo generate_link('Totals', $link_array) . ' | Instances: ';
 
 $sagan_instances = $app->data['instances'] ?? [];
 sort($sagan_instances);
@@ -49,7 +49,7 @@ foreach ($graphs as $key => $text) {
     $graph_type = $key;
     $graph_array['height'] = '100';
     $graph_array['width'] = '215';
-    $graph_array['to'] = \LibreNMS\Config::get('time.now');
+    $graph_array['to'] = \App\Facades\LibrenmsConfig::get('time.now');
     $graph_array['id'] = $app['app_id'];
     $graph_array['type'] = 'application_' . $key;
 

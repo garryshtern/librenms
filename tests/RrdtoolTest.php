@@ -1,4 +1,5 @@
 <?php
+
 /**
  * RrdtoolTest.php
  *
@@ -25,16 +26,16 @@
 
 namespace LibreNMS\Tests;
 
-use LibreNMS\Config;
+use App\Facades\LibrenmsConfig;
 use LibreNMS\Data\Store\Rrd;
 
-class RrdtoolTest extends TestCase
+final class RrdtoolTest extends TestCase
 {
     public function testBuildCommandLocal(): void
     {
-        Config::set('rrdcached', '');
-        Config::set('rrdtool_version', '1.4');
-        Config::set('rrd_dir', '/opt/librenms/rrd');
+        LibrenmsConfig::set('rrdcached', '');
+        LibrenmsConfig::set('rrdtool_version', '1.4');
+        LibrenmsConfig::set('rrd_dir', '/opt/librenms/rrd');
 
         $cmd = $this->buildCommandProxy('create', '/opt/librenms/rrd/f', 'o');
         $this->assertEquals('create /opt/librenms/rrd/f o', $cmd);
@@ -45,8 +46,7 @@ class RrdtoolTest extends TestCase
         $cmd = $this->buildCommandProxy('update', '/opt/librenms/rrd/f', 'o');
         $this->assertEquals('update /opt/librenms/rrd/f o', $cmd);
 
-        $this->app->forgetInstance(Rrd::class);
-        Config::set('rrdtool_version', '1.6');
+        LibrenmsConfig::set('rrdtool_version', '1.6');
 
         $cmd = $this->buildCommandProxy('create', '/opt/librenms/rrd/f', 'o');
         $this->assertEquals('create /opt/librenms/rrd/f o -O', $cmd);
@@ -60,9 +60,9 @@ class RrdtoolTest extends TestCase
 
     public function testBuildCommandRemote(): void
     {
-        Config::set('rrdcached', 'server:42217');
-        Config::set('rrdtool_version', '1.4');
-        Config::set('rrd_dir', '/opt/librenms/rrd');
+        LibrenmsConfig::set('rrdcached', 'server:42217');
+        LibrenmsConfig::set('rrdtool_version', '1.4');
+        LibrenmsConfig::set('rrd_dir', '/opt/librenms/rrd');
 
         $cmd = $this->buildCommandProxy('create', '/opt/librenms/rrd/f', 'o');
         $this->assertEquals('create /opt/librenms/rrd/f o', $cmd);
@@ -73,8 +73,7 @@ class RrdtoolTest extends TestCase
         $cmd = $this->buildCommandProxy('update', '/opt/librenms/rrd/f', 'o');
         $this->assertEquals('update f o --daemon server:42217', $cmd);
 
-        $this->app->forgetInstance(Rrd::class);
-        Config::set('rrdtool_version', '1.6');
+        LibrenmsConfig::set('rrdtool_version', '1.6');
 
         $cmd = $this->buildCommandProxy('create', '/opt/librenms/rrd/f', 'o');
         $this->assertEquals('create f o -O --daemon server:42217', $cmd);
@@ -88,8 +87,8 @@ class RrdtoolTest extends TestCase
 
     public function testBuildCommandException(): void
     {
-        Config::set('rrdcached', '');
-        Config::set('rrdtool_version', '1.4');
+        LibrenmsConfig::set('rrdcached', '');
+        LibrenmsConfig::set('rrdtool_version', '1.4');
 
         $this->expectException('LibreNMS\Exceptions\FileExistsException');
         // use this file, since it is guaranteed to exist
@@ -98,11 +97,10 @@ class RrdtoolTest extends TestCase
 
     private function buildCommandProxy($command, $filename, $options)
     {
-        // todo better tests
-        $reflection = new \ReflectionClass(Rrd::class);
-        $method = $reflection->getMethod('buildCommand');
-        $method->setAccessible(true);
+        $mock = $this->mock(Rrd::class)->makePartial(); // avoid constructor
+        // @phpstan-ignore method.protected
+        $mock->loadConfig(); // load config every time to clear cached settings
 
-        return $method->invokeArgs($this->app->make(Rrd::class), func_get_args());
+        return $mock->buildCommand($command, $filename, $options);
     }
 }

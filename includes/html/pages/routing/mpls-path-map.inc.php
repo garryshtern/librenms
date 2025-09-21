@@ -1,4 +1,5 @@
 <?php
+
 /*
  * LibreNMS
  *
@@ -11,12 +12,12 @@
  * the source code distribution for details.
  */
 
-use LibreNMS\Config;
+use App\Facades\LibrenmsConfig;
 
 $hops = [];
 $links = [];
 
-$options = Config::get('network_map_vis_options');
+$options = LibrenmsConfig::get('network_map_vis_options');
 
 $lsp_path_id = $path['lsp_path_id'];
 $last_node = dbFetchCell('SELECT L.mplsLspToAddr FROM mpls_lsps AS L, mpls_lsp_paths AS P WHERE P.lsp_path_id = ? AND L.lsp_id = P.lsp_id', [$path['lsp_path_id']]);
@@ -161,7 +162,8 @@ $edges = json_encode($links);
 if (count($hops) > 1 && count($links) > 0) {
     $visualization = 'visualization-' . $i;
     echo '<div id="visualization-' . $i . '"></div>
-        <script src="js/vis.min.js"></script>
+        <script src="js/vis-network.min.js"></script>
+        <script src="js/vis-data.min.js"></script>
         <script type="text/javascript">
         var height = $(window).height() / 2;
         ';

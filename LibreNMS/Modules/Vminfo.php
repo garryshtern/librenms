@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Vminfo.php
  *
@@ -25,9 +26,9 @@
 
 namespace LibreNMS\Modules;
 
+use App\Facades\LibrenmsConfig;
 use App\Models\Device;
 use App\Observers\ModuleModelObserver;
-use LibreNMS\Config;
 use LibreNMS\DB\SyncsModels;
 use LibreNMS\Interfaces\Data\DataStorageInterface;
 use LibreNMS\Interfaces\Discovery\VminfoDiscovery;
@@ -50,7 +51,7 @@ class Vminfo implements \LibreNMS\Interfaces\Module
     public function shouldDiscover(OS $os, ModuleStatus $status): bool
     {
         // libvirt does not use snmp, only ssh tunnels
-        return $status->isEnabledAndDeviceUp($os->getDevice(), check_snmp: ! Config::get('enable_libvirt')) && $os instanceof VminfoDiscovery;
+        return $status->isEnabledAndDeviceUp($os->getDevice(), check_snmp: ! LibrenmsConfig::get('enable_libvirt')) && $os instanceof VminfoDiscovery;
     }
 
     /**
@@ -64,7 +65,6 @@ class Vminfo implements \LibreNMS\Interfaces\Module
             ModuleModelObserver::observe(\App\Models\Vminfo::class);
             $this->syncModels($os->getDevice(), 'vminfo', $vms);
         }
-        echo PHP_EOL;
     }
 
     public function shouldPoll(OS $os, ModuleStatus $status): bool
@@ -94,18 +94,23 @@ class Vminfo implements \LibreNMS\Interfaces\Module
         $this->discover($os);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function cleanup(Device $device): void
+    public function dataExists(Device $device): bool
     {
-        $device->vminfo()->delete();
+        return $device->vminfo()->exists();
     }
 
     /**
      * @inheritDoc
      */
-    public function dump(Device $device)
+    public function cleanup(Device $device): int
+    {
+        return $device->vminfo()->delete();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function dump(Device $device, string $type): ?array
     {
         return [
             'vminfo' => $device->vminfo()->orderBy('vmwVmVMID')

@@ -4,7 +4,7 @@ Get details of an alert
 
 Route: `/api/v0/alerts/:id`
 
-- id is the alert id, you can obtain a list of alert ids from [`list_alerts`](#function-list_alerts).
+- id is the alert id, you can obtain a list of alert ids from [`list_alerts`](#list_alerts).
 
 Input:
 
@@ -13,7 +13,7 @@ Input:
 Example:
 
 ```curl
-curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/alerts/1
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/alerts/1
 ```
 
 Output:
@@ -43,9 +43,9 @@ Acknowledge an alert
 
 Route: `/api/v0/alerts/:id`
 
-- id is the alert id, you can obtain a list of alert ids from [`list_alerts`](#function-list_alerts).
+- id is the alert id, you can obtain a list of alert ids from [`list_alerts`](#list_alerts).
 - note is the note to add to the alert
-- until_clear is a boolean and if set to false, the alert will re-alert if it worsens/betters.
+- until_clear is a boolean and if set to false, the alert will re-alert if it gets worse/better or changes.
 
 Input:
 
@@ -54,7 +54,7 @@ Input:
 Example:
 
 ```curl
-curl -X PUT -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/alerts/1
+curl -X PUT -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/alerts/1
 ```
 
 Output:
@@ -73,7 +73,7 @@ Unmute an alert
 
 Route: `/api/v0/alerts/unmute/:id`
 
-- id is the alert id, you can obtain a list of alert ids from [`list_alerts`](#function-list_alerts).
+- id is the alert id, you can obtain a list of alert ids from [`list_alerts`](#list_alerts).
 
 Input:
 
@@ -82,7 +82,7 @@ Input:
 Example:
 
 ```curl
-curl -X PUT -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/alerts/unmute/1
+curl -X PUT -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/alerts/unmute/1
 ```
 
 Output:
@@ -111,19 +111,19 @@ Input:
 Examples:
 
 ```curl
-curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/alerts?state=1
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/alerts?state=1
 ```
 
 ```curl
-curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/alerts?severity=critical
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/alerts?severity=critical
 ```
 
 ```curl
-curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/alerts?order=timestamp%20ASC
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/alerts?order=timestamp%20ASC
 ```
 
 ```curl
-curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/alerts?alert_rule=49
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/alerts?alert_rule=49
 ```
 
 Output:
@@ -163,7 +163,7 @@ Input:
 Example:
 
 ```curl
-curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/rules/1
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/rules/1
 ```
 
 Output:
@@ -202,7 +202,7 @@ Input:
 Example:
 
 ```curl
-curl -X DELETE -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/rules/1
+curl -X DELETE -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/rules/1
 ```
 
 Output:
@@ -230,7 +230,7 @@ Input:
 Example:
 
 ```curl
-curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/rules
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/rules
 ```
 
 Output:
@@ -285,7 +285,7 @@ Input (JSON):
 Example:
 
 ```curl
-curl -X POST -d '{"devices":[1,2,3], "name": "testrule", "builder":{"condition":"AND","rules":[{"id":"devices.hostname","field":"devices.hostname","type":"string","input":"text","operator":"equal","value":"localhost"}],"valid":true},"severity": "critical","count":15,"delay":"5 m","interval":"5 m","mute":false,"notes":"This a note from the API"}' -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/rules
+curl -X POST -d '{"devices":[1,2,3], "name": "testrule", "builder":{"condition":"AND","rules":[{"id":"devices.hostname","field":"devices.hostname","type":"string","input":"text","operator":"equal","value":"localhost"}],"valid":true},"severity": "critical","count":15,"delay":"5 m","interval":"5 m","mute":false,"notes":"This a note from the API"}' -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/rules
 ```
 
 Output:
@@ -330,7 +330,7 @@ Input (JSON):
 Example:
 
 ```curl
-curl -X PUT -d '{"rule_id":1,"device_id":"-1", "name": "testrule", "builder":{"condition":"AND","rules":[{"id":"devices.hostname","field":"devices.hostname","type":"string","input":"text","operator":"equal","value":"localhost"}],"valid":true},"severity": "critical","count":15,"delay":"5 m","interval":"5 m","mute":false,"notes":"This a note from the API"}' -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/rules
+curl -X PUT -d '{"rule_id":1,"device_id":"-1", "name": "testrule", "builder":{"condition":"AND","rules":[{"id":"devices.hostname","field":"devices.hostname","type":"string","input":"text","operator":"equal","value":"localhost"}],"valid":true},"severity": "critical","count":15,"delay":"5 m","interval":"5 m","mute":false,"notes":"This a note from the API"}' -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/rules
 ```
 
 Output:

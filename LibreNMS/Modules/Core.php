@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Core.php
  *
@@ -25,10 +26,11 @@
 
 namespace LibreNMS\Modules;
 
+use App\Facades\LibrenmsConfig;
 use App\Models\Device;
 use App\Models\Eventlog;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use LibreNMS\Config;
 use LibreNMS\Enum\Severity;
 use LibreNMS\Interfaces\Data\DataStorageInterface;
 use LibreNMS\Interfaces\Module;
@@ -80,11 +82,11 @@ class Core implements Module
             Eventlog::log('Device OS changed: ' . $device->getOriginal('os') . ' -> ' . $device->os, $device, 'system', Severity::Notice);
             $os->getDeviceArray()['os'] = $device->os;
 
-            echo 'Changed ';
+            Log::info('OS Changed ');
         }
 
         // Set type to a predefined type for the OS if it's not already set
-        $loaded_os_type = Config::get("os.$device->os.type");
+        $loaded_os_type = LibrenmsConfig::get("os.$device->os.type");
         if (! $device->getAttrib('override_device_type') && $loaded_os_type != $device->type) {
             $device->type = $loaded_os_type;
             Log::debug("Device type changed to $loaded_os_type!");
@@ -92,7 +94,7 @@ class Core implements Module
 
         $device->save();
 
-        echo 'OS: ' . Config::getOsSetting($device->os, 'text') . " ($device->os)\n\n";
+        Log::notice('OS: ' . LibrenmsConfig::getOsSetting($device->os, 'text') . " ($device->os)\n");
     }
 
     public function shouldPoll(OS $os, ModuleStatus $status): bool
@@ -125,17 +127,22 @@ class Core implements Module
         $device->save();
     }
 
-    public function cleanup(Device $device): void
+    public function dataExists(Device $device): bool
     {
-        // nothing to cleanup
+        return false; // no module specific data
+    }
+
+    public function cleanup(Device $device): int
+    {
+        return 0; // nothing to cleanup
     }
 
     /**
      * @inheritDoc
      */
-    public function dump(Device $device)
+    public function dump(Device $device, string $type): ?array
     {
-        return false; // all data here is stored in the devices table and covered by the os module
+        return null; // all data here is stored in the devices table and covered by the os module
     }
 
     /**
@@ -165,8 +172,7 @@ class Core implements Module
         ];
 
         // check yaml files
-        \LibreNMS\Util\OS::loadAllDefinitions();
-        $os_defs = Config::get('os');
+        $os_defs = LibrenmsConfig::get('os');
 
         foreach ($os_defs as $os => $def) {
             if (isset($def['discovery']) && ! in_array($os, $generic_os)) {
@@ -261,23 +267,23 @@ class Core implements Module
 
     private function calculateUptime(OS $os, ?string $sysUpTime, DataStorageInterface $datastore): void
     {
-        global $agent_data;
         $device = $os->getDevice();
 
-        if (Config::get("os.$device->os.bad_uptime")) {
+        if (LibrenmsConfig::get("os.$device->os.bad_uptime")) {
             return;
         }
 
+        $agent_data = Cache::driver('array')->get('agent_data');
         if (! empty($agent_data['uptime'])) {
             $uptime = round((float) substr($agent_data['uptime'], 0, strpos($agent_data['uptime'], ' ')));
-            echo "Using UNIX Agent Uptime ($uptime)\n";
+            Log::info("Using UNIX Agent Uptime ($uptime)");
         } else {
             $uptime_data = SnmpQuery::make()->get(['SNMP-FRAMEWORK-MIB::snmpEngineTime.0', 'HOST-RESOURCES-MIB::hrSystemUptime.0'])->values();
 
             $uptime = max(
                 round(Number::cast($sysUpTime) / 100),
-                Config::get("os.$device->os.bad_snmpEngineTime") ? 0 : Number::cast($uptime_data['SNMP-FRAMEWORK-MIB::snmpEngineTime.0'] ?? 0),
-                Config::get("os.$device->os.bad_hrSystemUptime") ? 0 : round(Number::cast($uptime_data['HOST-RESOURCES-MIB::hrSystemUptime.0'] ?? 0) / 100)
+                LibrenmsConfig::get("os.$device->os.bad_snmpEngineTime") ? 0 : Number::cast($uptime_data['SNMP-FRAMEWORK-MIB::snmpEngineTime.0'] ?? 0),
+                LibrenmsConfig::get("os.$device->os.bad_hrSystemUptime") ? 0 : round(Number::cast($uptime_data['HOST-RESOURCES-MIB::hrSystemUptime.0'] ?? 0) / 100)
             );
             Log::debug("Uptime seconds: $uptime\n");
         }
@@ -286,7 +292,7 @@ class Core implements Module
         if ($uptime > 0) {
             if ($uptime < $device->uptime) {
                 Eventlog::log('Device rebooted after ' . Time::formatInterval($device->uptime) . " -> {$uptime}s", $device, 'reboot', Severity::Warning, $device->uptime);
-                if (Config::get('discovery_on_reboot')) {
+                if (LibrenmsConfig::get('discovery_on_reboot')) {
                     $device->last_discovered = null;
                     $device->save();
                 }

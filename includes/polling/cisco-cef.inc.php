@@ -15,7 +15,7 @@ if ($device['os_group'] == 'cisco') {
     d_echo($cefs);
 
     if (is_array($cefs)) {
-        if (! is_array($entity_array)) {
+        if (! isset($entity_array) || ! is_array($entity_array)) {
             echo 'Caching OIDs: ';
             $entity_array = [];
             echo ' entPhysicalDescr';
@@ -83,8 +83,8 @@ if ($device['os_group'] == 'cisco') {
                         'hostpunt' => $cef_stat['cefSwitchingPunt2Host'],
                     ];
 
-                    $tags = compact('entity', 'afi', 'index', 'rrd_name', 'rrd_def');
-                    data_update($device, 'cefswitching', $tags, $fields);
+                    $tags = ['entity' => $entity, 'afi' => $afi, 'index' => $index, 'rrd_name' => $rrd_name, 'rrd_def' => $rrd_def];
+                    app('Datastore')->put($device, 'cefswitching', $tags, $fields);
 
                     echo "\n";
                 }//end foreach
@@ -93,11 +93,13 @@ if ($device['os_group'] == 'cisco') {
     }//end if
 
     // FIXME - need to delete old ones. FIXME REALLY.
-    print_r($cefs_db);
+    if (! empty($cefs_db)) {
+        print_r($cefs_db);
 
-    foreach ((array) $cefs_db as $cef_switching_id) {
-        dbDelete('cef_switching', '`cef_switching_id` =  ?', [$cef_switching_id]);
-        echo '-';
+        foreach ((array) $cefs_db as $cef_switching_id) {
+            dbDelete('cef_switching', '`cef_switching_id` =  ?', [$cef_switching_id]);
+            echo '-';
+        }
     }
 
     echo "\n";

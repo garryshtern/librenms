@@ -11,7 +11,7 @@ Input (JSON):
 Examples:
 
 ```curl
-curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/devicegroups
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/devicegroups
 ```
 
 Output:
@@ -58,7 +58,7 @@ Dynamic Example:
 
 ```curl
 curl -H 'X-Auth-Token: YOURAPITOKENHERE' \
-  -X POST https://librenms.org/api/v0/devicegroups \
+  -X POST https://foo.example/api/v0/devicegroups \
   --data-raw '
 {
  "name": "New Device Group", 
@@ -83,7 +83,7 @@ Static Example:
 
 ```curl
 curl -H 'X-Auth-Token: YOURAPITOKENHERE' \
-  -X POST https://librenms.org/api/v0/devicegroups \
+  -X POST https://foo.example/api/v0/devicegroups \
   -d '{"name":"New Device Group","type":"static","devices":[261,271]}'
 ```
 
@@ -104,7 +104,7 @@ Updates a device group.
 Route: `/api/v0/devicegroups/:name`
 
 - name Is the name of the device group which can be obtained using
-  [`get_devicegroups`](#function-get_devicegroups). Please ensure that
+  [`get_devicegroups`](#get_devicegroups). Please ensure that
   the name is urlencoded if it needs to be (i.e Linux Servers would
   need to be urlencoded.
 
@@ -122,7 +122,7 @@ Input (JSON):
 Examples:
 
 ```curl
-curl -X PATCH -d '{"name": "NewLinuxServers"}' -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/devices/LinuxServers
+curl -X PATCH -d '{"name": "NewLinuxServers"}' -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/devices/LinuxServers
 ```
 
 Output:
@@ -141,7 +141,7 @@ Deletes a device group.
 Route: `/api/v0/devicegroups/:name`
 
 - name Is the name of the device group which can be obtained using
-  [`get_devicegroups`](#function-get_devicegroups). Please ensure that
+  [`get_devicegroups`](#get_devicegroups). Please ensure that
   the name is urlencoded if it needs to be (i.e Linux Servers would
   need to be urlencoded.
 
@@ -152,7 +152,7 @@ Input:
 Examples:
 
 ```curl
-curl -X DELETE -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/devices/LinuxServers
+curl -X DELETE -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/devices/LinuxServers
 ```
 
 Output:
@@ -171,7 +171,7 @@ List all devices matching the group provided.
 Route: `/api/v0/devicegroups/:name`
 
 - name Is the name of the device group which can be obtained using
-  [`get_devicegroups`](#function-get_devicegroups). Please ensure that
+  [`get_devicegroups`](#get_devicegroups). Please ensure that
   the name is urlencoded if it needs to be (i.e Linux Servers would
   need to be urlencoded.
 
@@ -182,7 +182,7 @@ Input (JSON):
 Examples:
 
 ```curl
-curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/devicegroups/LinuxServers
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://foo.example/api/v0/devicegroups/LinuxServers
 ```
 
 Output:
@@ -212,7 +212,7 @@ Output:
 
 Set a device group into maintenance mode.
 
-Route: `/api/v0/devicesgroups/:name/maintenance`
+Route: `/api/v0/devicegroups/:name/maintenance`
 
 Input (JSON):
 
@@ -229,7 +229,7 @@ Example with start time:
 
 ```curl
 curl -H 'X-Auth-Token: YOURAPITOKENHERE' \
-  -X POST https://librenms.org/api/v0/devicegroups/Cisco%20switches/maintenance/ \
+  -X POST https://foo.example/api/v0/devicegroups/Cisco%20switches/maintenance/ \
   --data-raw '
 {
  "title":"Device group Maintenance",
@@ -253,7 +253,7 @@ Example with no start time:
 
 ```curl
 curl -H 'X-Auth-Token: YOURAPITOKENHERE' \
-  -X POST https://librenms.org/api/v0/devicegroups/Cisco%20switches/maintenance/ \
+  -X POST https://foo.example/api/v0/devicegroups/Cisco%20switches/maintenance/ \
   --data-raw '
 {
  "title":"Device group Maintenance",
@@ -276,10 +276,10 @@ Output:
 
 Add devices to a device group.
 
-Route: `/api/v0/devicesgroups/:name/devices`
+Route: `/api/v0/devicegroups/:name/devices`
 
 - name Is the name of the device group which can be obtained using
-  [`get_devicegroups`](#function-get_devicegroups). Please ensure that
+  [`get_devicegroups`](#get_devicegroups). Please ensure that
   the name is urlencoded if it needs to be (i.e Linux Servers would
   need to be urlencoded.
 
@@ -291,7 +291,7 @@ Example:
 
 ```curl
 curl -H 'X-Auth-Token: YOURAPITOKENHERE' \
-  -X POST https://librenms.org/api/v0/devicegroups/devices \
+  -X POST https://foo.example/api/v0/devicegroups/devices \
   --data-raw '{"devices":[261,271]}'
 ```
 
@@ -308,10 +308,10 @@ Output:
 
 Removes devices from a device group.
 
-Route: `/api/v0/devicesgroups/:name/devices`
+Route: `/api/v0/devicegroups/:name/devices`
 
 - name Is the name of the device group which can be obtained using
-  [`get_devicegroups`](#function-get_devicegroups). Please ensure that
+  [`get_devicegroups`](#get_devicegroups). Please ensure that
   the name is urlencoded if it needs to be (i.e Linux Servers would
   need to be urlencoded.
 
@@ -323,7 +323,7 @@ Example:
 
 ```curl
 curl -H 'X-Auth-Token: YOURAPITOKENHERE' \
-  -X DELETE https://librenms.org/api/v0/devicegroups/devices \
+  -X DELETE https://foo.example/api/v0/devicegroups/devices \
   --data-raw '{"devices":[261,271]}'
 ```
 

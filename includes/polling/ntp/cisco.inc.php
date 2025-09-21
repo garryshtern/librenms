@@ -1,4 +1,5 @@
 <?php
+
 /*
  * LibreNMS module to capture statistics from the CISCO-NTP-MIB
  *
@@ -22,10 +23,9 @@ $options = [];
 $options['filter']['type'] = ['=', $tmp_module];
 $options['filter']['disabled'] = ['=', 0];
 $options['filter']['ignore'] = ['=', 0];
-$components = $component->getComponents($device['device_id'], $options);
 
 // We only care about our device id.
-$components = $components[$device['device_id']];
+$components = $component->getComponents($device['device_id'], $options)[$device['device_id']] ?? null;
 
 // Only collect SNMP data if we have enabled components
 if (is_array($components) && count($components) > 0) {
@@ -73,8 +73,8 @@ if (is_array($components) && count($components) > 0) {
         $hexdisp = $cntpPeersVarEntry['1.3.6.1.4.1.9.9.168.1.2.1.1'][25][$array['UID']];
         $rrd['dispersion'] = hexdec(substr($hexdisp, 0, 5)) + hexdec(substr($hexdisp, -5)) / 65536;
 
-        $tags = compact('ntp', 'rrd_name', 'rrd_def', 'peer');
-        data_update($device, 'ntp', $tags, $rrd);
+        $tags = ['rrd_name' => $rrd_name, 'rrd_def' => $rrd_def, 'peer' => $peer];
+        app('Datastore')->put($device, 'ntp', $tags, $rrd);
 
         // Let's print some debugging info.
         d_echo("\n\nComponent: " . $key . "\n");

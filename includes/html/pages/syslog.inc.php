@@ -14,7 +14,7 @@
 */
 
 use Carbon\Carbon;
-use LibreNMS\Config;
+use App\Facades\LibrenmsConfig;
 
 $no_refresh = true;
 $param = [];
@@ -50,7 +50,7 @@ $pagetitle[] = 'Syslog';
         '<option value="">All Devices&nbsp;&nbsp;</option>' +
             <?php
             if ($device_id) {
-                echo "'<option value=$device_id>" . format_hostname(device_by_id_cache($device_id)) . "</option>' +";
+                echo "'<option value=$device_id>" . str_replace(['"', '\''], '', htmlentities(format_hostname(device_by_id_cache($device_id)))) . "</option>' +";
             } ?>
         '</select>' +
             <?php
@@ -108,7 +108,7 @@ $pagetitle[] = 'Syslog';
                 clear: 'fa fa-trash-o',
                 close: 'fa fa-close'
             },
-            defaultDate: '<?php echo Carbon::now()->subDay()->format(Config::get('dateformat.byminute', 'Y-m-d H:i')); ?>'
+            defaultDate: '<?php echo Carbon::now()->subDay()->format(LibrenmsConfig::get('dateformat.byminute', 'Y-m-d H:i')); ?>'
         });
         $("#dtpickerfrom").on("dp.change", function (e) {
             $("#dtpickerto").data("DateTimePicker").minDate(e.date);
@@ -135,7 +135,7 @@ $pagetitle[] = 'Syslog';
         if ($("#dtpickerto").val() != "") {
             $("#dtpickerfrom").data("DateTimePicker").maxDate($("#dtpickerto").val());
         } else {
-            $("#dtpickerto").data("DateTimePicker").maxDate('<?php echo Carbon::now()->format(Config::get('dateformat.byminute', 'Y-m-d H:i')); ?>');
+            $("#dtpickerto").data("DateTimePicker").maxDate('<?php echo Carbon::now()->format(LibrenmsConfig::get('dateformat.byminute', 'Y-m-d H:i')); ?>');
         }
     });
 

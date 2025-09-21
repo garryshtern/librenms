@@ -1,4 +1,5 @@
 <?php
+
 /* Copyright (C) 2014 Daniel Preussker <f0o@devilcode.org>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +36,20 @@ class Slack extends Transport
         $slack_opts = $this->parseUserOptions($this->config['slack-options'] ?? '');
         $icon = $this->config['slack-icon_emoji'] ?? $slack_opts['icon_emoji'] ?? null;
         $slack_msg = html_entity_decode(strip_tags($alert_data['msg'] ?? ''), ENT_QUOTES);
+
+        /*
+         * Normalize spaces since you might want to do logic in your template, and Slack is
+         * very sensitive to spaces.  This turns every instance of two or more spaces into
+         * one space.
+         */
+        $slack_msg = preg_replace('/ {2,}/', ' ', $slack_msg);
+
+        /*
+         * Replace "standard" markdown links with Slack-specific markdown.
+         * This has to be done after strip_tags() because these are actually tags.
+         * So [Target](https://mysite.example.com) becomes <https://mysite.example.com|Target>
+         */
+        $slack_msg = preg_replace('/\[([^\]]+)\]\(((https?|mailto|ftp):[^\)]+)\)/', '<$2|$1>', $slack_msg);
 
         $data = [
             'attachments' => [

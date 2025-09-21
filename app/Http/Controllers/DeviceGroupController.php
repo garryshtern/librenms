@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Interfaces\ToastInterface;
 use App\Models\DeviceGroup;
-use Flasher\Prime\FlasherInterface;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use LibreNMS\Alerting\QueryBuilderFilter;
-use LibreNMS\Alerting\QueryBuilderFluentParser;
 
 class DeviceGroupController extends Controller
 {
@@ -46,10 +45,10 @@ class DeviceGroupController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request  $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request, FlasherInterface $flasher)
+    public function store(Request $request, ToastInterface $toast)
     {
         $this->validate($request, [
             'name' => 'required|string|unique:device_groups',
@@ -67,7 +66,7 @@ class DeviceGroupController extends Controller
             $deviceGroup->devices()->sync($request->devices);
         }
 
-        $flasher->addSuccess(__('Device Group :name created', ['name' => htmlentities($deviceGroup->name)]));
+        $toast->success(__('Device Group :name created', ['name' => htmlentities($deviceGroup->name)]));
 
         return redirect()->route('device-groups.index');
     }
@@ -75,7 +74,7 @@ class DeviceGroupController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\DeviceGroup  $deviceGroup
+     * @param  DeviceGroup  $deviceGroup
      * @return \Illuminate\Http\RedirectResponse
      */
     public function show(DeviceGroup $deviceGroup)
@@ -86,17 +85,11 @@ class DeviceGroupController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\DeviceGroup  $deviceGroup
+     * @param  DeviceGroup  $deviceGroup
      * @return \Illuminate\View\View
      */
     public function edit(DeviceGroup $deviceGroup)
     {
-        // convert old rules on edit
-        if (is_null($deviceGroup->rules)) {
-            $query_builder = QueryBuilderFluentParser::fromOld($deviceGroup->pattern);
-            $deviceGroup->rules = $query_builder->toArray();
-        }
-
         return view('device-group.edit', [
             'device_group' => $deviceGroup,
             'filters' => json_encode(new QueryBuilderFilter('group')),
@@ -106,11 +99,11 @@ class DeviceGroupController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\DeviceGroup  $deviceGroup
+     * @param  Request  $request
+     * @param  DeviceGroup  $deviceGroup
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, DeviceGroup $deviceGroup, FlasherInterface $flasher)
+    public function update(Request $request, DeviceGroup $deviceGroup, ToastInterface $toast)
     {
         $this->validate($request, [
             'name' => [
@@ -143,9 +136,9 @@ class DeviceGroupController extends Controller
         if ($deviceGroup->isDirty() || $devices_updated) {
             try {
                 if ($deviceGroup->save() || $devices_updated) {
-                    $flasher->addSuccess(__('Device Group :name updated', ['name' => htmlentities($deviceGroup->name)]));
+                    $toast->success(__('Device Group :name updated', ['name' => htmlentities($deviceGroup->name)]));
                 } else {
-                    $flasher->addError(__('Failed to save'));
+                    $toast->error(__('Failed to save'));
 
                     return redirect()->back()->withInput();
                 }
@@ -155,7 +148,7 @@ class DeviceGroupController extends Controller
                 ]);
             }
         } else {
-            $flasher->addInfo(__('No changes made'));
+            $toast->info(__('No changes made'));
         }
 
         return redirect()->route('device-groups.index');
@@ -164,7 +157,7 @@ class DeviceGroupController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\DeviceGroup  $deviceGroup
+     * @param  DeviceGroup  $deviceGroup
      * @return \Illuminate\Http\Response
      */
     public function destroy(DeviceGroup $deviceGroup)

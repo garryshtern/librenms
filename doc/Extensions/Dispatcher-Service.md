@@ -117,20 +117,31 @@ Additional configuration settings can be set in your config.
 The defaults are shown here - it's recommended that you at least tune
 the number of workers.
 
-!!! setting "poller/distributed"
+!!! warning "Workers"
+    The number of workers configured will be evenly split amongst the number of poller
+    groups configured. I.e if you have 4 groups and 24 workers then each group will get 
+    6 workers. If you have an uneven distribution of devices between the groups then you
+    should consider setting the workers value higher.
+
+!!! setting "poller/dispatcherservice"
     ```bash
     lnms config:set service_poller_workers 24
     lnms config:set service_services_workers 8
     lnms config:set service_discovery_workers 16
+    lnms config:set schedule_type.poller dispatcher
+    lnms config:set schedule_type.services dispatcher
+    lnms config:set schedule_type.discovery dispatcher
     ```
 
 Optional Settings
 
-!!! setting "poller/distributed"
+!!! setting "poller/dispatcherservice"
     ```bash
     lnms config:set service_poller_frequency 300
     lnms config:set service_services_frequency 300
     lnms config:set service_discovery_frequency 21600
+    lnms config:set schedule_type.alerting dispatcher
+    lnms config:set schedule_type.billing dispatcher
     lnms config:set service_billing_frequency 300
     lnms config:set service_billing_calculate_frequency 60
     lnms config:set service_poller_down_retry 60
@@ -166,9 +177,10 @@ Maximum WS equals the number of workers multiplied with the number of seconds in
 The [fast ping](Fast-Ping-Check.md) scheduler is disabled by default.
 You can enable it by setting the following:
 
-```php
-$config['service_ping_enabled'] = true;
-```
+!!! setting "poller/scheduledtasks"
+    ```bash
+    lnms config:set schedule_type.ping dispatcher
+    ```
 
 ## Watchdog
 
@@ -182,10 +194,7 @@ The watchdog scheduler will check that the poller log file has been written to w
 
 ## Cron Scripts
 
-Once the LibreNMS service is installed, the cron scripts used by LibreNMS to start alerting, polling, discovery and maintenance tasks are no longer required and must be disabled either by removing or commenting them out. The service handles these tasks when enabled. The only cron task enabled after switching to the dispatcher service should be the following:
-```
-*    *    * * *   librenms    cd /opt/librenms/ && php artisan schedule:run >> /dev/null 2>&1
-```
+Once the LibreNMS service is installed, the cron scripts used by LibreNMS to start alerting, polling, discovery and maintenance tasks are no longer required and must be disabled either by removing or commenting them out. The service handles these tasks when enabled.
 
 ## Service Installation
 
@@ -265,8 +274,6 @@ replacement scl.
 Warning: Bullseye provide PHP 7.4 that is too old to run LibreNMS.
 
 ##### Debian 12 (Bookworm)
-
-Warning: Bookworm is not available as stable yet (as 2022 november).
 
 Install dependancies
 ```

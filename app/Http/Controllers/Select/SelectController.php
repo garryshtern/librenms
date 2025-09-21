@@ -1,4 +1,5 @@
 <?php
+
 /**
  * SelectController.php
  *
@@ -32,7 +33,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 
 abstract class SelectController extends PaginatedAjaxController
 {
@@ -51,7 +51,7 @@ abstract class SelectController extends PaginatedAjaxController
     /**
      * The default method called by the route handler
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function __invoke(Request $request)
@@ -78,8 +78,15 @@ abstract class SelectController extends PaginatedAjaxController
      */
     protected function formatResponse($paginator)
     {
+        $results = collect($paginator->items())->map([$this, 'formatItem']);
+
+        // prepend the initial item, unless filtered out
+        if ($this->canPrependFirstItem(request())) {
+            $results->prepend($this->prependItem());
+        }
+
         return response()->json([
-            'results' => collect($paginator->items())->map([$this, 'formatItem']),
+            'results' => $results,
             'pagination' => ['more' => $paginator->hasMorePages()],
         ]);
     }
@@ -111,11 +118,28 @@ abstract class SelectController extends PaginatedAjaxController
         ];
     }
 
-    protected function includeGeneral(): bool
+    protected function prependItem(): ?array
     {
-        if (request()->has('id') && request('id') !== 0) {
+        return null;
+    }
+
+    protected function canPrependFirstItem(Request $request): bool
+    {
+        $item = $this->prependItem();
+
+        if (empty($item)) {
             return false;
-        } elseif (request()->has('term') && ! Str::contains('general', strtolower(request('term')))) {
+        }
+
+        if ($request->page > 1) {
+            return false;
+        }
+
+        if ($request->has('id') && $request->id != $item['id']) { // purposely loose comparison
+            return false;
+        }
+
+        if ($request->has('term') && ! str_contains(strtolower($item['text']), strtolower($request->term))) {
             return false;
         }
 

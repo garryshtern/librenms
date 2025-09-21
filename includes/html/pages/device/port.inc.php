@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Port;
 use App\Models\PortAdsl;
 use App\Models\PortsNac;
 use App\Models\PortVdsl;
@@ -10,14 +9,14 @@ use LibreNMS\Util\Url;
 
 $vars['view'] = basename($vars['view'] ?? 'graphs');
 
-$port = \App\Models\Port::find($vars['port']);
+$port = \App\Facades\PortCache::get($vars['port']);
 
 $port_details = 1;
 
 $hostname = $device['hostname'];
 $ifname = $port->ifDescr;
 $ifIndex = $port->ifIndex;
-$speed = \LibreNMS\Util\Number::formatSi($port->ifSpeed, 2, 3, 'bps');
+$speed = \LibreNMS\Util\Number::formatSi($port->ifSpeed, 2, 0, 'bps');
 
 $ifalias = $port->getLabel();
 
@@ -45,9 +44,22 @@ $bg = '#ffffff';
 
 $show_all = 1;
 
-echo "<div class=ifcell style='margin: 0px;'><table width=100% cellpadding=10 cellspacing=0>";
+echo "<div style='margin: 0px; width: 100%'><table class='iftable'>";
 
-require 'includes/html/print-interface.inc.php';
+echo view('device.tabs.ports.includes.port_row', [
+    'port' => $port,
+    'data' => [
+        'tab' => 'detail',
+        'neighbors' => [$port->port_id => (new \App\Http\Controllers\Device\Tabs\PortsController())->findPortNeighbors($port)],
+        'neighbor_ports' => null,
+        'graphs' => [
+            'bits' => [['type' => 'port_bits', 'title' => trans('Traffic'), 'vars' => [['from' => '-1d'], ['from' => '-7d'], ['from' => '-30d'], ['from' => '-1y']]]],
+            'upkts' => [['type' => 'port_upkts', 'title' => trans('Packets (Unicast)'), 'vars' => [['from' => '-1d'], ['from' => '-7d'], ['from' => '-30d'], ['from' => '-1y']]]],
+            'errors' => [['type' => 'port_errors', 'title' => trans('Errors'), 'vars' => [['from' => '-1d'], ['from' => '-7d'], ['from' => '-30d'], ['from' => '-1y']]]],
+        ],
+    ],
+    'collapsing' => false,
+]);
 
 echo '</table></div>';
 
@@ -80,11 +92,19 @@ if ($port->macs()->exists()) {
     $menu_options['arp'] = 'ARP Table';
 }
 
+if ($port->nd()->exists()) {
+    $menu_options['nd'] = 'IPv6 ND';
+}
+
 if ($port->fdbEntries()->exists()) {
     $menu_options['fdb'] = 'FDB Table';
 }
 $menu_options['events'] = 'Eventlog';
 $menu_options['notes'] = (get_dev_attrib($device, 'port_id_notes:' . $port->port_id) ?? '') == '' ? 'Notes' : 'Notes*';
+
+if ($port->transceivers()->exists()) {
+    $menu_options['transceiver'] = __('port.transceiver');
+}
 
 if (dbFetchCell("SELECT COUNT(*) FROM `sensors` WHERE `device_id` = ? AND `entPhysicalIndex` = ?  AND entPhysicalIndex_measured = 'ports'", [$device['device_id'], $port->ifIndex])) {
     $menu_options['sensors'] = 'Health';
@@ -108,19 +128,11 @@ if (dbFetchCell("SELECT COUNT(*) FROM `ports_vlans` WHERE `port_id` = '" . $port
     $menu_options['vlans'] = 'VLANs';
 }
 
-// Are there any CBQoS components for this device?
-$component = new LibreNMS\Component();
-$options = [];         // Re-init array in case it has been declared previously.
-$options['filter']['type'] = ['=', 'Cisco-CBQOS'];
-$components = $component->getComponents($device['device_id'], $options);
-$components = $components[$device['device_id']] ?? [];        // We only care about our device id.
-if (count($components) > 0) {
-    $menu_options['cbqos'] = 'CBQoS';
+if ($port->qos()->count() > 0) {
+    $menu_options['qos'] = 'QoS';
 }
 
-$portModel = Port::find($port->port_id);
-
-if (LibreNMS\Plugins::countHooks('port_container') || \PluginManager::hasHooks(PortTabHook::class, ['port' => $portModel])) {
+if (LibreNMS\Plugins::countHooks('port_container') || \PluginManager::hasHooks(PortTabHook::class, ['port' => $port])) {
     // Checking if any plugin implements the port_container. If yes, allow to display the menu_option
     $menu_options['plugins'] = 'Plugins';
 }
@@ -254,7 +266,7 @@ if (dbFetchCell("SELECT COUNT(*) FROM juniAtmVp WHERE port_id = '" . $port->port
     }
 }//end if
 
-if (Auth::user()->hasGlobalAdmin() && \LibreNMS\Config::get('enable_billing') == 1) {
+if (Auth::user()->hasGlobalAdmin() && \App\Facades\LibrenmsConfig::get('enable_billing') == 1) {
     $bills = dbFetchRows('SELECT `bill_id` FROM `bill_ports` WHERE `port_id`=?', [$port->port_id]);
     if (count($bills) === 1) {
         echo "<span style='float: right;'><a href='" . Url::generate(['page' => 'bill', 'bill_id' => $bills[0]['bill_id']]) . "'><i class='fa fa-money fa-lg icon-theme' aria-hidden='true'></i> View Bill</a></span>";

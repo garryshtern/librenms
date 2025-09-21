@@ -4,45 +4,30 @@ on:
   push:
     branches:
       - 'master'
-    paths-ignore:
-      - '**.md'
-      - '.github/workflows/doc.yml'
-      - 'doc/**'
-      - 'mkdocs.yml'
   pull_request:
     branches:
       - 'master'
-    paths-ignore:
-      - '**.md'
-      - '.github/workflows/doc.yml'
-      - 'doc/**'
-      - 'mkdocs.yml'
 
 permissions:
   contents: read # to fetch code (actions/checkout)
 
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
           -
+            php-version: 8.4
+            name: Unit
+            skip-web-check: 1
+            database: mariadb:11.7
+          -
             php-version: 8.2
             name: Unit
             skip-web-check: 1
-            database: mariadb:10.5
-          -
-            php-version: 8.1
-            name: Unit
-            skip-web-check: 1
             database: mysql:8.0
-          -
-            php-version: 8.1
-            name: Web
-            skip-unit-check: 1
-            database: mariadb:10.11
     services:
       database:
         image: ${{ matrix.database }}
@@ -56,7 +41,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       -
@@ -86,7 +71,7 @@ jobs:
           echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       -
         name: Cache composer
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ secrets.CACHE_VERSION }}-${{ hashFiles('**/composer.lock') }}
@@ -94,22 +79,17 @@ jobs:
             ${{ runner.os }}-composer-${{ secrets.CACHE_VERSION }}-
       -
         name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-${{ secrets.CACHE_VERSION }}-
       -
-        name: Install packages
-        run: |
-          sudo apt-get -qq update
-          sudo apt-get install -y fping python3-pip python3-setuptools snmp sqlite3
-      -
         name: Pip install
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install --upgrade --user snmpsim pylint python-memcached mysqlclient
+          python3 -m pip install --upgrade --user pylint python-memcached mysqlclient
       -
         name: Composer validate
         run: |
@@ -139,10 +119,9 @@ jobs:
         run: |
           composer install --prefer-dist --no-interaction --no-progress
       -
-        name: Artisan dusk:chrome-driver
-        if: matrix.skip-web-check != '1'
+        name: Snmpsim setup
         run: |
-          php artisan dusk:chrome-driver --detect
+          php lnms dev:simulate --setup-venv
       -
         name: Copy seeded config
         run: cp "${GITHUB_WORKSPACE}/tests/testing_config.yaml" "${GITHUB_WORKSPACE}/database/seeders/config/"
@@ -169,16 +148,13 @@ jobs:
         name: Setup SQLite
         run: sqlite3 database/testing.sqlite ""
       -
-        name: Artisan serve
-        if: matrix.skip-web-check != '1'
-        run: |
-          php artisan serve --env=dusk.testing >/tmp/artisan-serve.log 2>&1 &
-          sleep 5
+        name: Migrate Database
+        run: php artisan migrate
       -
-        name: Start SNMP
+        name: Start SNMPSIM
         if: matrix.skip-unit-check != '1'
         run: |
-          ~/.local/bin/snmpsimd.py --data-dir=tests/snmpsim --agent-udpv4-endpoint=127.1.6.2:1162 --logging-method=file:/tmp/snmpsimd.log &
+          .python_venvs/snmpsim/bin/snmpsim-command-responder-lite --data-dir=tests/snmpsim --agent-udpv4-endpoint=127.1.6.2:1162 --log-level=error --logging-method=file:/tmp/snmpsimd.log &
       -
         name: lnms dev:check ci
         run: |
@@ -190,11 +166,6 @@ jobs:
         name: Dump docker logs on failure
         if: failure()
         uses: jwalton/gh-docker-logs@v2
-      -
-        name: Dump serve logs
-        if: always() && matrix.skip-web-check != '1'
-        run: |
-          cat /tmp/artisan-serve.log || true
       -
         name: Dump snmp logs
         if: failure() && matrix.skip-unit-check != '1'

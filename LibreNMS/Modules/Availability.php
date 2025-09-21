@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Availability.php
  *
@@ -25,8 +26,8 @@
 
 namespace LibreNMS\Modules;
 
+use App\Facades\LibrenmsConfig;
 use App\Models\Device;
-use LibreNMS\Config;
 use LibreNMS\Interfaces\Data\DataStorageInterface;
 use LibreNMS\Interfaces\Module;
 use LibreNMS\OS;
@@ -72,7 +73,7 @@ class Availability implements Module
         $os->enableGraph('availability');
 
         $valid_ids = [];
-        foreach (Config::get('graphing.availability') as $duration) {
+        foreach (LibrenmsConfig::get('graphing.availability') as $duration) {
             // update database with current calculation
             $avail = \App\Models\Availability::updateOrCreate([
                 'device_id' => $os->getDeviceId(),
@@ -100,19 +101,28 @@ class Availability implements Module
         $os->getDevice()->availability()->whereNotIn('availability_id', $valid_ids)->delete();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function cleanup(Device $device): void
+    public function dataExists(Device $device): bool
     {
-        $device->availability()->delete();
+        return $device->availability()->exists();
     }
 
     /**
      * @inheritDoc
      */
-    public function dump(Device $device)
+    public function cleanup(Device $device): int
     {
+        return $device->availability()->delete();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function dump(Device $device, string $type): ?array
+    {
+        if ($type == 'discovery') {
+            return null;
+        }
+
         return [
             'availability' => $device->availability()->orderBy('duration')
                 ->get()->map->makeHidden(['availability_id', 'device_id']),

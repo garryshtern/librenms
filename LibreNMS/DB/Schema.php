@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Schema.php
  *
@@ -25,9 +26,9 @@
 
 namespace LibreNMS\DB;
 
+use App\Facades\LibrenmsConfig;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use LibreNMS\Config;
 use LibreNMS\Util\Version;
 use Schema as LaravelSchema;
 use Symfony\Component\Yaml\Yaml;
@@ -105,7 +106,7 @@ class Schema
     public function getSchema()
     {
         if (! isset($this->schema)) {
-            $file = Config::get('install_dir') . '/misc/db_schema.yaml';
+            $file = resource_path('definitions/schema/db_schema.yaml');
             $this->schema = Yaml::parse(file_get_contents($file));
         }
 
@@ -146,7 +147,7 @@ class Schema
     {
         $update_cache = true;
         $cache = [];
-        $cache_file = Config::get('install_dir') . "/cache/{$base}_relationships.cache";
+        $cache_file = LibrenmsConfig::get('install_dir') . "/cache/{$base}_relationships.cache";
         $db_version = Version::get()->databaseMigrationCount();
 
         if (is_file($cache_file)) {
@@ -329,7 +330,7 @@ class Schema
 
         DB::statement("SET TIME_ZONE='+00:00'"); // set timezone to UTC to avoid timezone issues
 
-        foreach (DB::connection($connection)->select(DB::raw("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = '$db_name' ORDER BY TABLE_NAME;")->getValue(DB::connection($connection)->getQueryGrammar())) as $table) {
+        foreach (DB::connection($connection)->select(DB::raw("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = '$db_name' AND TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME;")->getValue(DB::connection($connection)->getQueryGrammar())) as $table) {
             $table = $table->TABLE_NAME;
             foreach (DB::connection($connection)->select(DB::raw("SELECT COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT, EXTRA FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '$db_name' AND TABLE_NAME='$table' ORDER BY ORDINAL_POSITION")->getValue(DB::connection($connection)->getQueryGrammar())) as $data) {
                 $def = [

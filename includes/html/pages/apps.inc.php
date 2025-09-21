@@ -1,6 +1,9 @@
 <?php
 
 $pagetitle[] = 'Apps';
+
+$selected_app = $vars['app'] ?? null;
+
 $graphs['apache'] = [
     'bits',
     'hits',
@@ -99,6 +102,7 @@ $graphs['powerdns'] = [
 $graphs['sneck'] = [
     'results',
     'time',
+    'runtime',
 ];
 $graphs['ntp-client'] = [
     'stats',
@@ -184,7 +188,10 @@ $graphs['exim-stats'] = [
     'queue',
 ];
 $graphs['php-fpm'] = [
-    'stats',
+    'overview_combined',
+    'overview_slow_requests',
+    'overview_max_childen_reached',
+    'v1_last_request_cpu',
 ];
 $graphs['nvidia'] = [
     'sm',
@@ -326,16 +333,16 @@ $graphs['freeradius'] = [
     'queue',
 ];
 $graphs['suricata'] = [
-    'alert',
-    'packets',
-    'nasty_delta',
-    'nasty_percent',
-    'dec_proto',
-    'flow_proto',
-    'app_flows',
-    'app_tx',
-    'bytes',
-    'mem_use',
+    'packets_overview',
+    'nasty_delta_overview',
+    'nasty_percent_overview',
+    'dec_proto_overview',
+    'flow_proto_overview',
+    'app_flows_overview',
+    'app_tx_overview',
+    'bytes_overview',
+    'mem_use_overview',
+    'uptime_overview',
 ];
 $graphs['zfs'] = [
     'arc_misc',
@@ -430,6 +437,25 @@ $graphs['sagan'] = [
     'uptime',
     'alert',
 ];
+$graphs['oslv_monitor'] = [
+    'cpu_percent',
+    'mem_percent',
+    'time',
+    'procs',
+    'sizes',
+    'rss',
+    'vsz',
+    'faults',
+    'rwd_amount',
+    'ops_rwd',
+    'cows',
+    'sock',
+    'recv_sent_msgs',
+    'etime',
+    'swaps',
+    'signals_taken',
+    'switches',
+];
 $graphs['hv-monitor'] = [
     'status',
     'memory',
@@ -450,6 +476,7 @@ $graphs['pwrstatd'] = [
     'minutes',
 ];
 $graphs['systemd'] = [
+    'all',
     'sub',
     'active',
     'load',
@@ -538,6 +565,21 @@ $graphs['ss'] = [
     'vsock',
     'xdp',
 ];
+$graphs['http_access_log_combined'] = [
+    'bytes',
+    'codes_general',
+    'codes_1xx',
+    'codes_2xx',
+    'codes_3xx',
+    'codes_4xx',
+    'codes_5xx',
+    'methods',
+    'version',
+    'refer',
+    'user',
+    'log_size',
+    'error_size',
+];
 $graphs['borgbackup'] = [
     'unique_csize',
     'total_csize',
@@ -550,6 +592,46 @@ $graphs['borgbackup'] = [
     'locked',
     'locked_for',
 ];
+$graphs['nfs'] = [
+    'server_rpc',
+    'server_cache',
+    'client_rpc',
+    'client_cache',
+];
+$graphs['nextcloud'] = [
+    'used',
+    'calendars',
+    'disabled_apps',
+    'enabled_apps',
+    'encryption_enabled',
+    'user_count',
+];
+$graphs['poudriere'] = [
+    'status',
+    'phase',
+    'time',
+    'log_size',
+    'package_size',
+    'cpu_perc',
+    'mem_perc',
+    'time_comparison',
+    'user_time',
+    'system_time',
+    'rss',
+    'threads',
+    'major_faults',
+    'minor_faults',
+    'swaps',
+    'size_comparison',
+    'stack_size',
+    'data_size',
+    'text_size',
+    'read_blocks',
+    'copy_on_write_faults',
+    'context_switches_comparison',
+    'voluntary_context_switches',
+    'involuntary_context_switches',
+];
 
 echo '<div class="panel panel-default">';
 echo '<div class="panel-heading">';
@@ -557,13 +639,15 @@ echo "<span style='font-weight: bold;'>Apps</span> &#187; ";
 unset($sep);
 $link_array = [
     'page' => 'device',
-    'device' => $device['device_id'],
+    'device' => $device['device_id'] ?? 0,
     'tab' => 'apps',
 ];
 
-$apps = \LibreNMS\Util\ObjectCache::applications()->flatten();
-foreach ($apps as $app) {
-    $app_state = \LibreNMS\Util\Html::appStateIcon($app->app_state);
+$sep = '';
+$apps = LibreNMS\Util\ObjectCache::applications();
+foreach ($apps as $app_group) {
+    $app = $app_group->first();
+    $app_state = LibreNMS\Util\Html::appStateIcon($app->app_state);
     if (! empty($app_state['icon'])) {
         $app_state_info = '<font color="' . $app_state['color'] . '"><i title="' . $app_state['hover_text'] . '" class="fa ' . $app_state['icon'] . ' fa-fw fa-lg" aria-hidden="true"></i></font>';
     } else {
@@ -571,20 +655,20 @@ foreach ($apps as $app) {
     }
 
     echo $sep;
-    if ($vars['app'] == $app->app_type) {
+    if ($selected_app == $app->app_type) {
         echo "<span class='pagemenu-selected'>";
     }
     echo $app_state_info;
-    echo generate_link($app->displayName(), ['page' => 'apps', 'app' => $app->app_type]);
-    if ($vars['app'] == $app->app_type) {
+    echo generate_link(htmlentities($app->displayName()), ['page' => 'apps', 'app' => $app->app_type]);
+    if ($selected_app == $app->app_type) {
         echo '</span>';
     }
     $sep = ' | ';
 }
 echo '</div>';
 echo '<div class="panel-body">';
-if (isset($vars['app'])) {
-    $app = basename($vars['app']);
+if (isset($selected_app)) {
+    $app = basename($selected_app);
     if (is_file("includes/html/pages/apps/$app.inc.php")) {
         include "includes/html/pages/apps/$app.inc.php";
     } else {

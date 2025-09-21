@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Git.php
  *
@@ -25,10 +26,10 @@
 
 namespace LibreNMS\Util;
 
+use App\Facades\LibrenmsConfig;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Str;
-use LibreNMS\Config;
 use LibreNMS\Traits\RuntimeClassCache;
 use Symfony\Component\Process\Process;
 
@@ -42,7 +43,7 @@ class Git
     public function __construct(int $cache = 0)
     {
         $this->runtimeCacheExternalTTL = $cache;
-        $this->install_dir = Config::get('install_dir', realpath(__DIR__ . '/../..'));
+        $this->install_dir = realpath(__DIR__ . '/../..');
     }
 
     public static function make(int $cache = 0): Git
@@ -67,14 +68,14 @@ class Git
     public function repoPresent(): bool
     {
         return $this->cacheGet('repoPresent', function () {
-            return file_exists("$this->install_dir/.git");
+            return is_dir("$this->install_dir/.git");
         });
     }
 
     public function binaryExists(): bool
     {
         return $this->cacheGet('binaryExists', function () {
-            return $this->run('help', [])->isSuccessful();
+            return $this->run('version', [])->isSuccessful();
         });
     }
 
@@ -137,16 +138,16 @@ class Git
     /**
      * Note: It assumes origin/master points to github.com/librenms/librenms for this to work.
      */
-    public function isOfficialCommit(): bool
+    public function isOfficialCommits(): bool
     {
-        return $this->cacheGet('isOfficialCommit', function () {
+        return $this->cacheGet('isOfficialCommits', function () {
             if (! $this->isAvailable()) {
                 return false;
             }
 
-            $process = $this->run('branch', ['--remotes', '--contains', $this->commitHash(), 'origin/master']);
+            $process = $this->run('log', ['--exit-code', '--max-count=1', '--oneline', 'origin/master..HEAD']);
 
-            return $process->isSuccessful() && trim($process->getOutput()) == 'origin/master';
+            return $process->isSuccessful();
         });
     }
 
@@ -157,7 +158,7 @@ class Git
     {
         return $this->cacheGet('remoteUrl', function () {
             return $this->isAvailable()
-                ? rtrim($this->run('ls-remote', ['--get-url', 'origin'])->getOutput())
+                ? rtrim($this->run('remote', ['get-url', 'origin'])->getOutput())
                 : '';
         });
     }
@@ -196,7 +197,7 @@ class Git
         return $this->cacheGet('remoteCommit', function () {
             if ($this->isAvailable()) {
                 try {
-                    return (array) Http::client()->get(Config::get('github_api') . 'commits/master')->json();
+                    return (array) Http::client()->get(LibrenmsConfig::get('github_api') . 'commits/master')->json();
                 } catch (ConnectionException $e) {
                 }
             }

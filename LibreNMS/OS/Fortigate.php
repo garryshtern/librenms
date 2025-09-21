@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Fortigate.php
  *
@@ -26,6 +27,7 @@
 namespace LibreNMS\OS;
 
 use App\Models\Device;
+use Illuminate\Support\Facades\Log;
 use LibreNMS\Device\WirelessSensor;
 use LibreNMS\Interfaces\Data\DataStorageInterface;
 use LibreNMS\Interfaces\Discovery\Sensors\WirelessApCountDiscovery;
@@ -52,12 +54,12 @@ class Fortigate extends Fortinet implements
         if (is_numeric($sessions)) {
             $rrd_def = RrdDefinition::make()->addDataset('sessions', 'GAUGE', 0, 3000000);
 
-            echo "Sessions: $sessions\n";
+            Log::info("Sessions: $sessions");
             $fields = [
                 'sessions' => $sessions,
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'fortigate_sessions', $tags, $fields);
             $this->enableGraph('fortigate_sessions');
         }
@@ -66,12 +68,12 @@ class Fortigate extends Fortinet implements
         if (is_numeric($cpu_usage)) {
             $rrd_def = RrdDefinition::make()->addDataset('LOAD', 'GAUGE', -1, 100);
 
-            echo "CPU: $cpu_usage%\n";
+            Log::info("CPU: $cpu_usage%");
             $fields = [
                 'LOAD' => $cpu_usage,
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'fortigate_cpu', $tags, $fields);
             $this->enableGraph('fortigate_cpu');
         }

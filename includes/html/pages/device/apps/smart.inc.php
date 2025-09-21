@@ -13,12 +13,15 @@ $drives = [];
 
 $app_data = $app->data;
 
-array_multisort(array_keys($app_data['disks']), SORT_ASC, $app_data['disks']);
+if (isset($app_data['disks']) && is_array($app_data['disks'])) {
+    array_multisort(array_keys($app_data['disks']), SORT_ASC, $app_data['disks']);
+}
 
 foreach ($app_data['disks'] as $label => $disk_data) {
     $disk = $label;
+    $health_status = '';
 
-    if ($vars['disk'] == $disk) {
+    if (isset($vars['disk']) && $vars['disk'] == $disk) {
         $label = '<span class="pagemenu-selected">' . $label . '</span>';
     }
 
@@ -168,7 +171,7 @@ foreach ($graphs as $key => $text) {
     $graph_type = $key;
     $graph_array['height'] = '100';
     $graph_array['width'] = '215';
-    $graph_array['to'] = \LibreNMS\Config::get('time.now');
+    $graph_array['to'] = \App\Facades\LibrenmsConfig::get('time.now');
     $graph_array['id'] = $app['app_id'];
     $graph_array['type'] = 'application_' . $key;
     $graph_array['scale_min'] = '0';

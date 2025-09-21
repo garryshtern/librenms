@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Panos.php
  *
@@ -76,7 +77,7 @@ class Panos extends \LibreNMS\OS implements OSPolling
                 'sessions' => $data[0]['panSessionActive'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-sessions', $tags, $fields);
 
             $this->enableGraph('panos_sessions');
@@ -89,7 +90,7 @@ class Panos extends \LibreNMS\OS implements OSPolling
                 'sessions_tcp' => $data[0]['panSessionActiveTcp'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-sessions-tcp', $tags, $fields);
 
             $this->enableGraph('panos_sessions_tcp');
@@ -102,20 +103,20 @@ class Panos extends \LibreNMS\OS implements OSPolling
                 'sessions_udp' => $data[0]['panSessionActiveUdp'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-sessions-udp', $tags, $fields);
 
             $this->enableGraph('panos_sessions_udp');
         }
 
-        if (is_numeric($data[0]['panSessionActiveICMP'])) {
+        if (isset($data[0]['panSessionActiveICMP']) && is_numeric($data[0]['panSessionActiveICMP'])) {
             $rrd_def = RrdDefinition::make()->addDataset('sessions_icmp', 'GAUGE', 0, 3000000);
 
             $fields = [
                 'sessions_icmp' => $data[0]['panSessionActiveICMP'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-sessions-icmp', $tags, $fields);
 
             $this->enableGraph('panos_sessions_icmp');
@@ -128,280 +129,280 @@ class Panos extends \LibreNMS\OS implements OSPolling
                 'sessions_ssl' => $data[0]['panSessionActiveSslProxy'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-sessions-ssl', $tags, $fields);
 
             $this->enableGraph('panos_sessions_ssl');
         }
 
-        if (is_numeric($data[0]['panSessionSslProxyUtilization'])) {
+        if (is_numeric($data[0]['panSessionSslProxyUtilization'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('sessions_sslutil', 'GAUGE', 0, 3000000);
 
             $fields = [
                 'sessions_sslutil' => $data[0]['panSessionSslProxyUtilization'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-sessions-sslutil', $tags, $fields);
 
             $this->enableGraph('panos_sessions_sslutil');
         }
 
-        if (is_numeric($data[0]['panGPGWUtilizationActiveTunnels'])) {
+        if (is_numeric($data[0]['panGPGWUtilizationActiveTunnels'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('activetunnels', 'GAUGE', 0, 3000000);
 
             $fields = [
                 'activetunnels' => $data[0]['panGPGWUtilizationActiveTunnels'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-activetunnels', $tags, $fields);
 
             $this->enableGraph('panos_activetunnels');
         }
-        if (is_numeric($data[0]['panFlowDosBlkNumEntries'])) {
+        if (is_numeric($data[0]['panFlowDosBlkNumEntries'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosBlkNumEntries', 'GAUGE', 0);
 
             $fields = [
                 'panFlowDosBlkNumEntries' => $data[0]['panFlowDosBlkNumEntries'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosBlkNumEntries', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosBlkNumEntries');
         }
-        if (is_numeric($data[0]['panFlowMeterVsysThrottle'])) {
+        if (is_numeric($data[0]['panFlowMeterVsysThrottle'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowMeterVsysThrottle', 'COUNTER', 0);
 
             $fields = [
                 'panFlowMeterVsysThrottle' => $data[0]['panFlowMeterVsysThrottle'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowMeterVsysThrottle', $tags, $fields);
 
             $this->enableGraph('panos_panFlowMeterVsysThrottle');
         }
-        if (is_numeric($data[0]['panFlowPolicyDeny'])) {
+        if (is_numeric($data[0]['panFlowPolicyDeny'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowPolicyDeny', 'COUNTER', 0);
 
             $fields = [
                 'panFlowPolicyDeny' => $data[0]['panFlowPolicyDeny'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowPolicyDeny', $tags, $fields);
 
             $this->enableGraph('panos_panFlowPolicyDeny');
         }
-        if (is_numeric($data[0]['panFlowPolicyNat'])) {
+        if (is_numeric($data[0]['panFlowPolicyNat'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowPolicyNat', 'COUNTER', 0);
 
             $fields = [
                 'panFlowPolicyNat' => $data[0]['panFlowPolicyNat'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowPolicyNat', $tags, $fields);
 
             $this->enableGraph('panos_panFlowPolicyNat');
         }
-        if (is_numeric($data[0]['panFlowScanDrop'])) {
+        if (is_numeric($data[0]['panFlowScanDrop'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowScanDrop', 'COUNTER', 0);
 
             $fields = [
                 'panFlowScanDrop' => $data[0]['panFlowScanDrop'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowScanDrop', $tags, $fields);
 
             $this->enableGraph('panos_panFlowScanDrop');
         }
-        if (is_numeric($data[0]['panFlowDosDropIpBlocked'])) {
+        if (is_numeric($data[0]['panFlowDosDropIpBlocked'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosDropIpBlocked', 'COUNTER', 0);
 
             $fields = [
                 'panFlowDosDropIpBlocked' => $data[0]['panFlowDosDropIpBlocked'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosDropIpBlocked', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosDropIpBlocked');
         }
-        if (is_numeric($data[0]['panFlowDosRedIcmp'])) {
+        if (is_numeric($data[0]['panFlowDosRedIcmp'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosRedIcmp', 'COUNTER', 0);
 
             $fields = [
                 'panFlowDosRedIcmp' => $data[0]['panFlowDosRedIcmp'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosRedIcmp', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosRedIcmp');
         }
-        if (is_numeric($data[0]['panFlowDosRedIcmp6'])) {
+        if (is_numeric($data[0]['panFlowDosRedIcmp6'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosRedIcmp6', 'COUNTER', 0);
 
             $fields = [
                 'panFlowDosRedIcmp6' => $data[0]['panFlowDosRedIcmp6'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosRedIcmp6', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosRedIcmp6');
         }
-        if (is_numeric($data[0]['panFlowDosRedIp'])) {
+        if (is_numeric($data[0]['panFlowDosRedIp'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosRedIp', 'COUNTER', 0);
 
             $fields = [
                 'panFlowDosRedIp' => $data[0]['panFlowDosRedIp'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosRedIp', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosRedIp');
         }
-        if (is_numeric($data[0]['panFlowDosRedTcp'])) {
+        if (is_numeric($data[0]['panFlowDosRedTcp'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosRedTcp', 'COUNTER', 0);
 
             $fields = [
                 'panFlowDosRedTcp' => $data[0]['panFlowDosRedTcp'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosRedTcp', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosRedTcp');
         }
-        if (is_numeric($data[0]['panFlowDosRedUdp'])) {
+        if (is_numeric($data[0]['panFlowDosRedUdp'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosRedUdp', 'COUNTER', 0);
 
             $fields = [
                 'panFlowDosRedUdp' => $data[0]['panFlowDosRedUdp'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosRedUdp', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosRedUdp');
         }
-        if (is_numeric($data[0]['panFlowDosPbpDrop'])) {
+        if (is_numeric($data[0]['panFlowDosPbpDrop'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosPbpDrop', 'COUNTER', 0);
 
             $fields = [
                 'panFlowDosPbpDrop' => $data[0]['panFlowDosPbpDrop'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosPbpDrop', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosPbpDrop');
         }
-        if (is_numeric($data[0]['panFlowDosRuleDeny'])) {
+        if (is_numeric($data[0]['panFlowDosRuleDeny'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosRuleDeny', 'COUNTER', 0);
 
             $fields = [
                 'panFlowDosRuleDeny' => $data[0]['panFlowDosRuleDeny'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosRuleDeny', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosRuleDeny');
         }
-        if (is_numeric($data[0]['panFlowDosRuleDrop'])) {
+        if (is_numeric($data[0]['panFlowDosRuleDrop'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosRuleDrop', 'COUNTER', 0);
 
             $fields = [
                 'panFlowDosRuleDrop' => $data[0]['panFlowDosRuleDrop'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosRuleDrop', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosRuleDrop');
         }
-        if (is_numeric($data[0]['panFlowDosZoneRedAct'])) {
+        if (is_numeric($data[0]['panFlowDosZoneRedAct'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosZoneRedAct', 'COUNTER', 0);
 
             $fields = [
                 'panFlowDosZoneRedAct' => $data[0]['panFlowDosZoneRedAct'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosZoneRedAct', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosZoneRedAct');
         }
-        if (is_numeric($data[0]['panFlowDosZoneRedMax'])) {
+        if (is_numeric($data[0]['panFlowDosZoneRedMax'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosZoneRedMax', 'COUNTER', 0);
 
             $fields = [
                 'panFlowDosZoneRedMax' => $data[0]['panFlowDosZoneRedMax'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosZoneRedMax', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosZoneRedMax');
         }
-        if (is_numeric($data[0]['panFlowDosSyncookieNotTcpSyn'])) {
+        if (is_numeric($data[0]['panFlowDosSyncookieNotTcpSyn'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosSyncookieNotTcpSyn', 'COUNTER', 0);
 
             $fields = [
                 'panFlowDosSyncookieNotTcpSyn' => $data[0]['panFlowDosSyncookieNotTcpSyn'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosSyncookieNotTcpSyn', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosSyncookieNotTcpSyn');
         }
-        if (is_numeric($data[0]['panFlowDosSyncookieNotTcpSynAck'])) {
+        if (is_numeric($data[0]['panFlowDosSyncookieNotTcpSynAck'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosSyncookieNotTcpSynAck', 'COUNTER', 0);
 
             $fields = [
                 'panFlowDosSyncookieNotTcpSynAck' => $data[0]['panFlowDosSyncookieNotTcpSynAck'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosSyncookieNotTcpSynAck', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosSyncookieNotTcpSynAck');
         }
-        if (is_numeric($data[0]['panFlowDosBlkSwEntries'])) {
+        if (is_numeric($data[0]['panFlowDosBlkSwEntries'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosBlkSwEntries', 'GAUGE', 0);
 
             $fields = [
                 'panFlowDosBlkSwEntries' => $data[0]['panFlowDosBlkSwEntries'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosBlkSwEntries', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosBlkSwEntries');
         }
-        if (is_numeric($data[0]['panFlowDosBlkHwEntries'])) {
+        if (is_numeric($data[0]['panFlowDosBlkHwEntries'] ?? null)) {
             $rrd_def = RrdDefinition::make()->addDataset('panFlowDosBlkHwEntries', 'GAUGE', 0);
 
             $fields = [
                 'panFlowDosBlkHwEntries' => $data[0]['panFlowDosBlkHwEntries'],
             ];
 
-            $tags = compact('rrd_def');
+            $tags = ['rrd_def' => $rrd_def];
             $datastore->put($this->getDeviceArray(), 'panos-panFlowDosBlkHwEntries', $tags, $fields);
 
             $this->enableGraph('panos_panFlowDosBlkHwEntries');
         }
     }
 
-    protected function memValid($storage)
+    protected function memValid($storage): bool
     {
         return $storage['hrStorageType'] == 'hrStorageOther'
             && Str::contains($storage['hrStorageDescr'], $this->validNetBufferMemory)

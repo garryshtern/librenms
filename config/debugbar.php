@@ -27,6 +27,7 @@
          'api*',
          'graph*',
          'push*',
+         'device/*/popup',
      ],
 
      /*
@@ -47,6 +48,7 @@
          'path' => storage_path('debugbar'), // For file driver
          'connection' => null,   // Leave null for default connection (Redis/PDO)
          'provider' => '', // Instance of StorageInterface for custom driver
+         'open' => true,
      ],
 
      /*

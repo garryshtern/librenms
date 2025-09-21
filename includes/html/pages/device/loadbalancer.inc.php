@@ -14,6 +14,7 @@ $type_text['ltm_pool'] = 'LTM Pools';                   // F5 BigIP
 $type_text['ltm_bwc'] = 'LTM Bandwidth Controller';     // F5 BigIP
 $type_text['gtm_wide'] = 'GTM Wide IPs';                // F5 BigIP
 $type_text['gtm_pool'] = 'GTM Pools';                   // F5 BigIP
+$type_text['f5-cert'] = 'Certificates';                 // F5 BigIP
 
 print_optionbar_start();
 
@@ -52,9 +53,9 @@ if (is_file("includes/html/pages/device/loadbalancer/$type.inc.php")) {
             if (is_file('includes/html/pages/device/loadbalancer/overview/' . $type . '.inc.php')) {
                 $g_i++;
                 if (! is_integer($g_i / 2)) {
-                    $row_colour = \LibreNMS\Config::get('list_colour.even');
+                    $row_colour = \App\Facades\LibrenmsConfig::get('list_colour.even');
                 } else {
-                    $row_colour = \LibreNMS\Config::get('list_colour.odd');
+                    $row_colour = \App\Facades\LibrenmsConfig::get('list_colour.odd');
                 }
 
                 echo '<div style="background-color: ' . $row_colour . ';">';

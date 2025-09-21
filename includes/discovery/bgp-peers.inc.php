@@ -1,14 +1,14 @@
 <?php
 
-use LibreNMS\Config;
+use App\Facades\LibrenmsConfig;
 use LibreNMS\Exceptions\InvalidIpException;
 use LibreNMS\Util\IP;
 
 //
 // Load OS specific file
 //
-if (file_exists(Config::get('install_dir') . "/includes/discovery/bgp-peers/{$device['os']}.inc.php")) {
-    include Config::get('install_dir') . "/includes/discovery/bgp-peers/{$device['os']}.inc.php";
+if (file_exists(LibrenmsConfig::get('install_dir') . "/includes/discovery/bgp-peers/{$device['os']}.inc.php")) {
+    include LibrenmsConfig::get('install_dir') . "/includes/discovery/bgp-peers/{$device['os']}.inc.php";
 }
 
 if (empty($bgpLocalAs)) {
@@ -102,7 +102,7 @@ foreach (DeviceCache::getPrimary()->getVrfContexts() as $context_name) {
                 $safis[133] = 'flow';
 
                 if (! isset($j_peerIndexes)) {
-                    $j_bgp = snmpwalk_cache_multi_oid($device, 'jnxBgpM2PeerTable', [], 'BGP4-V2-MIB-JUNIPER', 'junos');
+                    $j_bgp = snmpwalk_cache_multi_oid($device, 'jnxBgpM2PeerTable', [], 'BGP4-V2-MIB-JUNIPER', 'junos', '-OQUbs');
                     d_echo($j_bgp);
                     $j_peerIndexes = [];
                     foreach ($j_bgp as $index => $entry) {
